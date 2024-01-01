@@ -1,0 +1,116 @@
+
+
+listEntries(){
+lineNum=0    
+while IFS= read -r line
+do
+  ((lineNum++))
+  echo "$lineNum)"
+  echo "Name: $(echo $line | cut -d: -f1) $(echo $line | cut -d: -f2)"
+  echo "Phone Number: $(cut -d: -f3 <<<$line)"
+  echo "Email: $(cut -d: -f4 <<<$line)"
+  echo " "
+
+done < "address_data.txt"
+} 
+
+addEntries(){
+  
+    echo "Enter your first name"
+    read firstName;
+    echo "Enter your last name"
+    read lastName
+    echo "Enter your phone number"
+    read phoneNumber
+    echo "Enter your email"
+    read email
+    cat <<EOL >> address_data.txt
+    $firstName:$lastName:$phoneNumber:$email
+EOL
+    echo "Details added successfully !!"
+
+}
+removeEntries(){
+
+    echo "Enter the name of entries to be removed"
+    read nameToBeRemoved
+
+    found=`search $nameToBeRemoved`
+    
+    if [ "$?" -eq "0" ]; then
+        sed -i "/$nameToBeRemoved/d" address_data.txt
+        echo "Entry with the name $nameToBeRemoved removed successfully"
+    else
+        echo "Entry not found"
+    fi
+}
+updateEntries(){
+    listEntries
+    echo "These are the all entries. Enter the name of entries which you want to rename"
+    read newName
+    data=`search $newName`
+    echo "To edit name press 1"
+    echo "To edit phone number press 2"
+    echo "To edit email press 3"
+    read id
+    case $id in
+        1)
+            echo "Enter new first name"
+            read first
+
+            newfirstName=$(cut -d: -f1 <<< $data)
+            sed -i "s/$newfirstName/$first/" address_data.txt <<<$data
+
+            echo "Enter new last name"
+            read last
+            replaceStr=$(cut -d: -f2 <<< $data)
+            sed -i "s/$replaceStr/$last/" address_data.txt <<<$data
+            ;;
+        2)
+            echo "Enter new phone number"
+            read newph
+            replacePhStr=$(cut -d: -f3 <<< $data)
+            sed -i "s/$replacePhStr/$newph/g" address_data.txt <<<$data
+            ;;
+        3)
+            echo "Enter new eamil "
+            read newEmail
+            replaceEmailStr=$(cut -d: -f4 <<< $data)
+            sed -i "s/$replaceEmailStr/$newEmail/g" address_data.txt <<<$data
+            ;;  
+          
+        *)
+            echo "Enter valid option"
+            ;;
+    esac
+    echo "Details updated successfully !!" 
+ 
+
+}
+search(){
+    grep "${1}" -i address_data.txt
+}
+searchEntries(){
+    echo "Please name to search entries"
+    read SEARCH_NAME
+
+    result=$(search $SEARCH_NAME)
+    if [ "$?" -eq "0" ]; then
+        echo "found entries"
+        echo "Name: $(echo $result | cut -d: -f1) $(echo $result | cut -d: -f2)"
+        echo "Phone Number: `search $SEARCH_NAME | cut -d: -f3`"
+        echo "Email: `search $SEARCH_NAME | cut -d: -f4`"
+    else
+        echo "entry not found"
+    fi    
+
+}
+display_instuctions(){
+    echo " "
+    echo "This is address book."
+    echo "Please enter 1 to add add entries"
+    echo "Enter 2 to remove entries"
+    echo "Enter 3 to edit entries"
+    echo "Enter 4 to search entries"
+    echo "Enter 5 to list all entries"
+}
